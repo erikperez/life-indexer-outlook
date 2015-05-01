@@ -65,34 +65,55 @@ request(options, function(error, response, body) {
             return updateCrawlData(crawlData);
         }
 
-        for (var i = 0; i < data.length; i++) {
-            var o = {
-                Id: data[i].Id,
-                Subject: data[i].Subject,
-                BodyPreview: data[i].BodyPreview,
-                CreatedOn: new Date(data[i].DateTimeCreated),
-                From: data[i].From,
-                ToRecipients: data[i].ToRecipients,
-                CcRecipients: data[i].CcRecipients,
-                Url: data[i].WebLink,
-                ConversationId: data[i].ConversationId
+        var diffData = [];
+        _.forEach(data, function(item){
+              var o = {
+                Id: item.Id,
+                Subject: item.Subject,
+                BodyPreview: item.BodyPreview,
+                CreatedOn: new Date(item.DateTimeCreated),
+                From: item.From,
+                ToRecipients: item.ToRecipients,
+                CcRecipients: item.CcRecipients,
+                Url: item.WebLink,
+                ConversationId: item.ConversationId
             };
-
+           
+            diffData.push(o);
             crawlData.data.push(o);
-        }
 
+        });
+       
+        return updateCrawlData(crawlData, diffData, function(diffData) {
+            console.log("Feeding..")
+            _.forEach(diffData, function(item) {
+                console.log("Feeding item")
+                var opt = {
+                    url: 'http://localhost:3030/indexer',
+                    formData: {
+                        'document': JSON.stringify([item])
+                    }
+                };
 
-        return updateCrawlData(crawlData);
+                request.post(opt, function(error, response, body) {
+                    console.log(body);
+                });
+            });
 
+        })
     }
+
 });
 
-
-updateCrawlData = function(crawlData) {
+updateCrawlData = function(crawlData, diffData, cb) {
     crawlData.meta.crawldate = new Date();
-
     fs.writeFile(crawlfilename, JSON.stringify(crawlData), function(err) {
         if (err) throw err;
         console.log("Crawl saved.");
     });
+
+    if (cb) {
+        console.log("Callback called()")
+        cb(diffData);
+    }
 }
