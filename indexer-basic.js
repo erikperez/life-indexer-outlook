@@ -89,7 +89,7 @@ request(options, function(error, response, body) {
             _.forEach(diffData, function(item) {
                 console.log("Feeding item")
                 var opt = {
-                    url: 'http://localhost:3030/indexer',
+                    url: configuration.norchindexer,
                     formData: {
                         'document': JSON.stringify([item])
                     }
