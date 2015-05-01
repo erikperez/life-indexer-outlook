@@ -1,0 +1,39 @@
+{
+  "name": "life-indexer-outlook",
+  "version": "1.0.0",
+  "description": "Outlook / Exchange / O365 indexer for Life Index",
+  "main": "indexer-basic.js",
+  "dependencies": {
+    "formidable": "^1.0.17",
+    "JSONStream": "^0.10.0",
+    "event-stream": "^3.3.0",
+    "http": "^0.0.0",
+    "node-outlook": "^1.0.2",
+    "simple-oauth2": "^0.2.1",
+    "request": "^2.55.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "\"\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erikperez/life-indexer-outlook"
+  },
+  "keywords": [
+    "life",
+    "crawl",
+    "norch",
+    "outlook",
+    "office",
+    "365",
+    "index",
+    "search"
+  ],
+  "author": "Erik Perez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/erikperez/life-indexer-outlook/issues"
+  },
+  "homepage": "https://github.com/erikperez/life-indexer-outlook"
+}
