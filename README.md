@@ -6,7 +6,7 @@ This component serves the [Life Index](https://github.com/eklem/life-index) proj
 
 ##Setup
 * Run `npm install` 
-* Insert your credentials in `credentials.js`
+* Insert your credentials in `configuration.js`
 * Run `node indexer-basic.js`
 
 
