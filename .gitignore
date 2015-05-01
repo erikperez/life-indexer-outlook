@@ -28,3 +28,6 @@ node_modules
 
 #Webstorm
 .idea
+
+#Project Specific - Sample Crawl Data JSON
+O365.json
