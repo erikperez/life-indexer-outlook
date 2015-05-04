@@ -15,7 +15,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 		'username': configuration.username,
 		'password': configuration.password,
 		'crawlfilename': configuration.crawlfilename,
-		'norchindexer': configuration.norchindexer
+		'norchindexer': configuration.norchindexer,
 	}, options);
 
 	var self = this;
@@ -23,7 +23,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 	this._filterCallback = function filterCallback(existingDataObject, data) {
 		console.log("Filtering " + data.length + " items...");
 		if (existingDataObject.crawlDataExists) {
-			data = _.filter(data, function(itemX) {
+			var filteredData = _.filter(data, function(itemX) {
 				if (itemX !== null) {
 					var subFilter = _.filter(existingDataObject.crawlData.data, function(itemY) {
 						if (itemY !== null && itemX !== null) {
@@ -31,13 +31,19 @@ var OutlookIndexer = function OutlookIndexer(options) {
 							return itemX[self.options.identifier] === itemY[self.options.identifier];
 						}
 					})
-					console.log(subFilter.length)
+					console.log("SubFilter.length:" + subFilter.length)
 					if (subFilter && subFilter.length === 0)
 						return true;
 				}
 			});
-		}
-		console.log("Filtering done, result=" + data.length + " id[0]: "+data[0].Id);
+			if (filteredData && filteredData.length > 0) {
+				data = filteredData;
+				console.log("Filtering done, result=" + data);
+			}else{
+				console.log("Filtering done, no delta was discovered");
+			}
+		} else
+			console.log("No existing data to filter on")
 		return data;
 	}
 
@@ -162,7 +168,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 }
 
 OutlookIndexer.prototype = {
-	fetch: function fetch(storageCallback, indexCallback) {
+	fetch: function fetch(indexCallback) {
 		var self = this;
 		self._run(self._existingCrawlDataCallback, self._dataCallback, self._filterCallback, self._mappingCallback, self._storageCallback, indexCallback);
 

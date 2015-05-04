@@ -29,8 +29,7 @@ var overrides = {
 
 var indexer = OutlookIndexer.create({}, overrides);
 indexer.fetch(function(data){
-  
- 
+	
 },
 function(existingData, newData){
   
