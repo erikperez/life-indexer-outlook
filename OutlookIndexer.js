@@ -21,9 +21,12 @@ var OutlookIndexer = function OutlookIndexer(options) {
 	var self = this;
 
 	this._filterCallback = function filterCallback(existingDataObject, data) {
+		if (!data)
+			return data;
+
 		console.log("Filtering " + data.length + " items...");
 		if (existingDataObject.crawlDataExists) {
-			var filteredData = _.filter(data, function(itemX) {
+			/*var filteredData = _.filter(data, function(itemX) {
 				if (itemX !== null) {
 					var subFilter = _.filter(existingDataObject.crawlData.data, function(itemY) {
 						if (itemY !== null && itemX !== null) {
@@ -39,11 +42,52 @@ var OutlookIndexer = function OutlookIndexer(options) {
 			if (filteredData && filteredData.length > 0) {
 				data = filteredData;
 				console.log("Filtering done, result=" + data);
-			}else{
+			} else {
 				console.log("Filtering done, no delta was discovered");
 			}
-		} else
-			console.log("No existing data to filter on")
+		}
+		*/
+			var duplicates = [];
+
+			var foundDiff = false;
+			var filteredData = data;
+
+			for (var i = 0; i < existingDataObject.crawlData.data.length; i++) {
+				var persistedObject = existingDataObject.crawlData.data[i];
+				var foundDuplicateInCrawl = false;
+				var duplicateObject;
+				var duplicateObjectIdx;
+
+				if (data) {
+					for (var j = 0; j < data.length; j++) {
+						var crawledObject = data[j];
+						if (!crawledObject)
+							continue;
+
+						if (crawledObject[self.options.identifier] == persistedObject[self.options.identifier]) {
+							duplicateObject = crawledObject;
+							foundDuplicateInCrawl = true;
+							duplicateObjectIdx = j;
+							break;
+						}
+
+					}
+				}
+
+				if (foundDuplicateInCrawl && duplicateObject) {
+					console.log("Found duplicate")
+					data.splice(data[duplicateObjectIdx], 1);
+					continue;
+				}
+
+			}
+
+			console.log("DIFFDATA=" + data.length)
+
+			return data;
+		}
+
+		console.log("No existing data to filter on")
 		return data;
 	}
 
