@@ -75,7 +75,6 @@ var OutlookIndexer = function OutlookIndexer(options) {
 				}
 
 				if (foundDuplicateInCrawl && duplicateObject) {
-					console.log("Found duplicate")
 					data.splice(data[duplicateObjectIdx], 1);
 					continue;
 				}
@@ -83,7 +82,6 @@ var OutlookIndexer = function OutlookIndexer(options) {
 			}
 
 			console.log("DIFFDATA=" + data.length)
-
 			return data;
 		}
 
@@ -116,32 +114,31 @@ var OutlookIndexer = function OutlookIndexer(options) {
 
 	this._storageCallback = function storageCallback(existingDataObject, mappedData) {
 		console.log("Storing " + mappedData.length + ' items...');
-		if (existingDataObject && existingDataObject.crawlDataExists) {
-
-			existingDataObject.crawlData.data.push(mappedData);
-			existingDataObject.crawlData.meta.crawldate = new Date(); //Set crawl date
-
-			fs.writeFile("crawlfilename.json", JSON.stringify(existingDataObject.crawlData), function(err) {
-				if (err) throw err;
-				console.log("Crawl saved.");
-			});
-		} else {
-			existingDataObject = {
-				crawlData: {
-					meta: {
-						crawldate: new Date()
-					},
-					data: mappedData
-				}
+		var dataObject = {
+			crawlData: {
+				meta: {
+					crawldate: new Date() //Always set crawl date
+				},
+				data: {}
 			}
-
-			fs.writeFile("crawlfilename.json", JSON.stringify(existingDataObject.crawlData), function(err) {
-				if (err) throw err;
-				console.log("Crawl saved.");
-			});
 		}
-		console.log("Storage done");
-		return existingDataObject;
+		if (!existingDataObject || !existingDataObject.crawlDataExists) {
+			dataObject.crawlData.data = mappedData;
+		} else {
+			dataObject.crawlData.data = existingDataObject.crawlData.data; //Load existing data
+			for (var i = 0; i < mappedData.length; i++) {
+				var mappedObject = mappedData[i];
+				if (mappedObject != undefined)
+					dataObject.crawlData.data.push(mappedObject); //Append to existing data
+			}
+		}
+
+		fs.writeFile("crawlfilename.json", JSON.stringify(dataObject.crawlData), function(err) {
+			if (err) throw err;
+			console.log("Crawl saved. Data length=" + dataObject.crawlData.data.length);
+		});
+
+		return dataObject;
 	}
 
 	this._existingCrawlDataCallback = function existingCrawlDataCallback(dataCallback, filterCallback, mappingCallback, storageCallback, indexCallback) {
