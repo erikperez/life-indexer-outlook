@@ -4,6 +4,7 @@ var configuration = require('./configuration.js'),
 	request = require('request');
 
 var OutlookIndexer = function OutlookIndexer(options) {
+	//assign default values from configuration.js
 	this.options = _.assign({
 		'url': configuration.url,
 		'identifier': configuration.identifier,
@@ -11,12 +12,14 @@ var OutlookIndexer = function OutlookIndexer(options) {
 		'password': configuration.password,
 		'crawlfilename': configuration.crawlfilename,
 		'norchindexer': configuration.norchindexer,
-		'incremental': true,
+		'incremental': configuration.incremental,
 	}, options);
 
 	var self = this;
 
+	//Filter callback to filter the new data against existing data.
 	this.filterCallback = function filterCallback(existingDataObject, data) {
+		//If incremental crawl is set to false, skip the callback.
 		if (!data || !self.options.incremental)
 			return data;
 
@@ -28,19 +31,16 @@ var OutlookIndexer = function OutlookIndexer(options) {
 				var duplicateObject;
 				var duplicateObjectIdx;
 
-				if (data) {
-					for (var j = 0; j < data.length; j++) {
-						var crawledObject = data[j];
-						if (!crawledObject)
-							continue;
+				for (var j = 0; j < data.length; j++) {
+					var crawledObject = data[j];
+					if (!crawledObject)
+						continue;
 
-						if (crawledObject[self.options.identifier] == persistedObject[self.options.identifier]) {
-							duplicateObject = crawledObject;
-							foundDuplicateInCrawl = true;
-							duplicateObjectIdx = j;
-							break;
-						}
-
+					if (crawledObject[self.options.identifier] == persistedObject[self.options.identifier]) {
+						duplicateObject = crawledObject;
+						foundDuplicateInCrawl = true;
+						duplicateObjectIdx = j;
+						break;
 					}
 				}
 
@@ -51,7 +51,6 @@ var OutlookIndexer = function OutlookIndexer(options) {
 
 			}
 
-			console.log("DIFFDATA=" + data.length)
 			return data;
 		}
 
@@ -59,6 +58,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 		return data;
 	}
 
+	//Maps raw objects to a reduced metadata object
 	this.mappingCallback = function mappingCallback(data) {
 		console.log("Mapping " + data.length + " items...");
 		var mappedData = [];
@@ -81,7 +81,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 		return mappedData;
 	}
 
-
+	//Storage callback for saving processed crawldata.
 	this.storageCallback = function storageCallback(existingDataObject, mappedData) {
 		console.log("Storing " + mappedData.length + ' items...');
 		var dataObject = {
@@ -111,6 +111,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 		return dataObject;
 	}
 
+	//Crawl data callback to retrieve previously crawled items
 	this.existingCrawlDataCallback = function existingCrawlDataCallback(dataCallback, filterCallback, mappingCallback, storageCallback, indexCallback) {
 
 		//Checking if there is existing crawl data somewhere.
@@ -137,6 +138,8 @@ var OutlookIndexer = function OutlookIndexer(options) {
 		});
 	}
 
+	//Data callback for fetching new data. 
+	//This callbacks also processes the pipeline execution of filter, mapping, storage and index
 	this.dataCallback = function dataCallback(crawlDataObject, filterCallback, mappingCallback, storageCallback, indexCallback) {
 
 		//Building the request to O365
