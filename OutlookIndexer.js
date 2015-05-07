@@ -3,10 +3,6 @@ var configuration = require('./configuration.js'),
 	fs = require('fs'),
 	request = require('request'),
 	bunyan = require('bunyan');
-var log = bunyan.createLogger({
-	name: 'OutlookIndexer'
-});
-
 
 var OutlookIndexer = function OutlookIndexer(options) {
 	this.options = _.assign({
@@ -26,31 +22,6 @@ var OutlookIndexer = function OutlookIndexer(options) {
 
 		console.log("Filtering " + data.length + " items...");
 		if (existingDataObject.crawlDataExists) {
-			/*var filteredData = _.filter(data, function(itemX) {
-				if (itemX !== null) {
-					var subFilter = _.filter(existingDataObject.crawlData.data, function(itemY) {
-						if (itemY !== null && itemX !== null) {
-							var identifier = self.options.identifier;
-							return itemX[self.options.identifier] === itemY[self.options.identifier];
-						}
-					})
-					console.log("SubFilter.length:" + subFilter.length)
-					if (subFilter && subFilter.length === 0)
-						return true;
-				}
-			});
-			if (filteredData && filteredData.length > 0) {
-				data = filteredData;
-				console.log("Filtering done, result=" + data);
-			} else {
-				console.log("Filtering done, no delta was discovered");
-			}
-		}
-		*/
-			var duplicates = [];
-
-			var foundDiff = false;
-			var filteredData = data;
 
 			for (var i = 0; i < existingDataObject.crawlData.data.length; i++) {
 				var persistedObject = existingDataObject.crawlData.data[i];
