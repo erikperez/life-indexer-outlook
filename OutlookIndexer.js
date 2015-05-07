@@ -112,7 +112,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 	}
 
 	//Crawl data callback to retrieve previously crawled items
-	this.existingCrawlDataCallback = function existingCrawlDataCallback(dataCallback, filterCallback, mappingCallback, storageCallback, indexCallback) {
+	this.existingCrawlDataCallback = function existingCrawlDataCallback(processingPipeline, dataCallback, filterCallback, mappingCallback, storageCallback, indexCallback) {
 
 		//Checking if there is existing crawl data somewhere.
 		fs.readFile("crawlfilename.json", function(err, data) {
@@ -133,14 +133,14 @@ var OutlookIndexer = function OutlookIndexer(options) {
 			}
 
 			if (dataCallback && typeof dataCallback == 'function') {
-				dataCallback(crawlDataObject, filterCallback, mappingCallback, storageCallback, indexCallback);
+				dataCallback(processingPipeline, crawlDataObject, filterCallback, mappingCallback, storageCallback, indexCallback);
 			}
 		});
 	}
 
 	//Data callback for fetching new data. 
 	//This callbacks also processes the pipeline execution of filter, mapping, storage and index
-	this.dataCallback = function dataCallback(crawlDataObject, filterCallback, mappingCallback, storageCallback, indexCallback) {
+	this.dataCallback = function dataCallback(processingPipeline, crawlDataObject, filterCallback, mappingCallback, storageCallback, indexCallback) {
 
 		//Building the request to O365
 		var auth = 'Basic ' + new Buffer(self.options.username + ':' + self.options.password).toString('base64');
@@ -155,36 +155,39 @@ var OutlookIndexer = function OutlookIndexer(options) {
 
 			if (!error && response.statusCode == 200) {
 				var fetchedData = JSON.parse(body).value;
-				var filteredData, mappedData, processedDataObject;
+				processingPipeline(fetchedData, crawlDataObject, filterCallback, mappingCallback, storageCallback, indexCallback);
 
-				if (filterCallback && typeof filterCallback === 'function') {
-					filteredData = filterCallback(crawlDataObject, fetchedData);
-					if (filteredData && mappingCallback && typeof mappingCallback === 'function') {
-						mappedData = mappingCallback(filteredData);
-						if (mappedData && storageCallback && typeof storageCallback === 'function') {
-							processedDataObject = storageCallback(crawlDataObject, mappedData);
-							if (indexCallback && typeof indexCallback === 'function') {
-								console.log('Indexing ' + filteredData.length + ' items...');
-								var indexData = indexCallback(mappedData);
-								console.log("Indexing done");
-							}
-						}
-					}
-
-				}
 			}
 		});
 	}
 
-	this._run = function _run(existingCrawlDataCallback, dataCallback, filterCallback, mappingCallback, storageCallback, indexCallback) {
-		existingCrawlDataCallback(dataCallback, filterCallback, mappingCallback, storageCallback, indexCallback);
+	this.processingPipeline = function processingPipeline(fetchedData, crawlDataObject, filterCallback, mappingCallback, storageCallback, indexCallback) {
+		var filteredData, mappedData, processedDataObject;
+		if (filterCallback && typeof filterCallback === 'function') {
+			filteredData = filterCallback(crawlDataObject, fetchedData);
+			if (filteredData && mappingCallback && typeof mappingCallback === 'function') {
+				mappedData = mappingCallback(filteredData);
+				if (mappedData && storageCallback && typeof storageCallback === 'function') {
+					processedDataObject = storageCallback(crawlDataObject, mappedData);
+					if (indexCallback && typeof indexCallback === 'function') {
+						console.log('Indexing ' + filteredData.length + ' items...');
+						var indexData = indexCallback(mappedData);
+						console.log("Indexing done");
+					}
+				}
+			}
+		}
+	}
+
+	this._run = function _run(processingPipeline, existingCrawlDataCallback, dataCallback, filterCallback, mappingCallback, storageCallback, indexCallback) {
+		existingCrawlDataCallback(processingPipeline, dataCallback, filterCallback, mappingCallback, storageCallback, indexCallback);
 	};
 }
 
 OutlookIndexer.prototype = {
 	fetch: function fetch(indexCallback) {
 		var self = this;
-		self._run(self.existingCrawlDataCallback, self.dataCallback, self.filterCallback, self.mappingCallback, self.storageCallback, indexCallback);
+		self._run(self.processingPipeline, self.existingCrawlDataCallback, self.dataCallback, self.filterCallback, self.mappingCallback, self.storageCallback, indexCallback);
 
 	}
 };
