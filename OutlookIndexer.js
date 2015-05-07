@@ -92,7 +92,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 				data: {}
 			}
 		}
-		if (!existingDataObject || !existingDataObject.crawlDataExists) {
+		if (!existingDataObject || !existingDataObject.crawlDataExists || !self.options.incremental) {
 			dataObject.crawlData.data = mappedData;
 		} else {
 			dataObject.crawlData.data = existingDataObject.crawlData.data; //Load existing data
