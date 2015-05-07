@@ -5,7 +5,6 @@
   "main": "indexer-basic.js",
   "dependencies": {
     "JSONStream": "^0.10.0",
-    "bunyan": "^1.3.5",
     "event-stream": "^3.3.0",
     "formidable": "^1.0.17",
     "http": "^0.0.0",
