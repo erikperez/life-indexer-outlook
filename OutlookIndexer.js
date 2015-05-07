@@ -1,8 +1,7 @@
 var configuration = require('./configuration.js'),
 	_ = require('lodash'),
 	fs = require('fs'),
-	request = require('request'),
-	bunyan = require('bunyan');
+	request = require('request');
 
 var OutlookIndexer = function OutlookIndexer(options) {
 	this.options = _.assign({
@@ -16,11 +15,11 @@ var OutlookIndexer = function OutlookIndexer(options) {
 
 	var self = this;
 
-	this._filterCallback = function filterCallback(existingDataObject, data) {
+	this.filterCallback = function filterCallback(existingDataObject, data) {
 		if (!data)
 			return data;
 
-		console.log("Filtering " + data.length + " items...");
+		console.log("Filtering against " + data.length + " fetched items...");
 		if (existingDataObject.crawlDataExists) {
 
 			for (var i = 0; i < existingDataObject.crawlData.data.length; i++) {
@@ -60,7 +59,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 		return data;
 	}
 
-	this._mappingCallback = function mappingCallback(data) {
+	this.mappingCallback = function mappingCallback(data) {
 		console.log("Mapping " + data.length + " items...");
 		var mappedData = [];
 		_.forEach(data, function(item) {
@@ -83,7 +82,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 	}
 
 
-	this._storageCallback = function storageCallback(existingDataObject, mappedData) {
+	this.storageCallback = function storageCallback(existingDataObject, mappedData) {
 		console.log("Storing " + mappedData.length + ' items...');
 		var dataObject = {
 			crawlData: {
@@ -112,7 +111,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 		return dataObject;
 	}
 
-	this._existingCrawlDataCallback = function existingCrawlDataCallback(dataCallback, filterCallback, mappingCallback, storageCallback, indexCallback) {
+	this.existingCrawlDataCallback = function existingCrawlDataCallback(dataCallback, filterCallback, mappingCallback, storageCallback, indexCallback) {
 
 		//Checking if there is existing crawl data somewhere.
 		fs.readFile("crawlfilename.json", function(err, data) {
@@ -138,7 +137,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 		});
 	}
 
-	this._dataCallback = function dataCallback(crawlDataObject, filterCallback, mappingCallback, storageCallback, indexCallback) {
+	this.dataCallback = function dataCallback(crawlDataObject, filterCallback, mappingCallback, storageCallback, indexCallback) {
 
 		//Building the request to O365
 		var auth = 'Basic ' + new Buffer(self.options.username + ':' + self.options.password).toString('base64');
@@ -182,7 +181,7 @@ var OutlookIndexer = function OutlookIndexer(options) {
 OutlookIndexer.prototype = {
 	fetch: function fetch(indexCallback) {
 		var self = this;
-		self._run(self._existingCrawlDataCallback, self._dataCallback, self._filterCallback, self._mappingCallback, self._storageCallback, indexCallback);
+		self._run(self.existingCrawlDataCallback, self.dataCallback, self.filterCallback, self.mappingCallback, self.storageCallback, indexCallback);
 
 	}
 };
