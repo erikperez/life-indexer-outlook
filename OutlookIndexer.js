@@ -11,17 +11,17 @@ var OutlookIndexer = function OutlookIndexer(options) {
 		'password': configuration.password,
 		'crawlfilename': configuration.crawlfilename,
 		'norchindexer': configuration.norchindexer,
+		'incremental': true,
 	}, options);
 
 	var self = this;
 
 	this.filterCallback = function filterCallback(existingDataObject, data) {
-		if (!data)
+		if (!data || !self.options.incremental)
 			return data;
 
 		console.log("Filtering against " + data.length + " fetched items...");
 		if (existingDataObject.crawlDataExists) {
-
 			for (var i = 0; i < existingDataObject.crawlData.data.length; i++) {
 				var persistedObject = existingDataObject.crawlData.data[i];
 				var foundDuplicateInCrawl = false;
